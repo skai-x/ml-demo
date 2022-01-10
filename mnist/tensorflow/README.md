@@ -66,7 +66,7 @@ mnist-cos   2022-01-04T07:47:21Z
 
 we will create tensorflow train job for train mnist demo, will use code and dataset in above definition.
 
-```
+```bash
 $ cat >> tf-job.yaml << EOF
 apiVersion: train.skai.io/v1alpha1
 kind: TrainJob
