@@ -177,65 +177,66 @@ def train():
   test_writer.close()
 
   # Export model.
-  # Build the signature_def_map.
-  export_path = os.path.join(
-      tf.compat.as_bytes(FLAGS.saved_model_dir),
-      tf.compat.as_bytes(str(FLAGS.model_version)))
-  print('Exporting trained model to', export_path)
-  builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(export_path)
-  serialized_tf_example = tf.compat.v1.placeholder(tf.string, name='tf_example')
-  values, indices = tf.nn.top_k(y, 10)
-  table = lookup_ops.index_to_string_table_from_tensor(
-      tf.constant([str(i) for i in range(10)]))
-  prediction_classes = table.lookup(tf.dtypes.cast(indices, tf.int64))
-  classification_inputs = tf.compat.v1.saved_model.utils.build_tensor_info(
-      serialized_tf_example)
-  classification_outputs_classes = tf.compat.v1.saved_model.utils.build_tensor_info(
-      prediction_classes)
-  classification_outputs_scores = tf.compat.v1.saved_model.utils.build_tensor_info(
-      values)
+  if FLAGS.saved_model_dir != "":
+      # Build the signature_def_map.
+      export_path = os.path.join(
+          tf.compat.as_bytes(FLAGS.saved_model_dir),
+          tf.compat.as_bytes(str(FLAGS.model_version)))
+      print('Exporting trained model to', export_path)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(export_path)
+      serialized_tf_example = tf.compat.v1.placeholder(tf.string, name='tf_example')
+      values, indices = tf.nn.top_k(y, 10)
+      table = lookup_ops.index_to_string_table_from_tensor(
+          tf.constant([str(i) for i in range(10)]))
+      prediction_classes = table.lookup(tf.dtypes.cast(indices, tf.int64))
+      classification_inputs = tf.compat.v1.saved_model.utils.build_tensor_info(
+          serialized_tf_example)
+      classification_outputs_classes = tf.compat.v1.saved_model.utils.build_tensor_info(
+          prediction_classes)
+      classification_outputs_scores = tf.compat.v1.saved_model.utils.build_tensor_info(
+          values)
 
-  classification_signature = (
-      tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
-          inputs={
-              tf.compat.v1.saved_model.signature_constants.CLASSIFY_INPUTS:
-                  classification_inputs
-          },
-          outputs={
+      classification_signature = (
+          tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
+              inputs={
+                  tf.compat.v1.saved_model.signature_constants.CLASSIFY_INPUTS:
+                      classification_inputs
+              },
+              outputs={
+                  tf.compat.v1.saved_model.signature_constants
+                  .CLASSIFY_OUTPUT_CLASSES:
+                      classification_outputs_classes,
+                  tf.compat.v1.saved_model.signature_constants
+                  .CLASSIFY_OUTPUT_SCORES:
+                      classification_outputs_scores
+              },
+              method_name=tf.compat.v1.saved_model.signature_constants
+              .CLASSIFY_METHOD_NAME))
+
+      tensor_info_x = tf.compat.v1.saved_model.utils.build_tensor_info(x)
+      tensor_info_y = tf.compat.v1.saved_model.utils.build_tensor_info(y)
+
+      prediction_signature = (
+          tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
+              inputs={'images': tensor_info_x},
+              outputs={'scores': tensor_info_y},
+              method_name=tf.compat.v1.saved_model.signature_constants
+              .PREDICT_METHOD_NAME))
+
+      builder.add_meta_graph_and_variables(
+          sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
+          signature_def_map={
+              'predict_images':
+                  prediction_signature,
               tf.compat.v1.saved_model.signature_constants
-              .CLASSIFY_OUTPUT_CLASSES:
-                  classification_outputs_classes,
-              tf.compat.v1.saved_model.signature_constants
-              .CLASSIFY_OUTPUT_SCORES:
-                  classification_outputs_scores
+              .DEFAULT_SERVING_SIGNATURE_DEF_KEY:
+                  classification_signature,
           },
-          method_name=tf.compat.v1.saved_model.signature_constants
-          .CLASSIFY_METHOD_NAME))
+          main_op=tf.compat.v1.tables_initializer(),
+          strip_default_attrs=True)
 
-  tensor_info_x = tf.compat.v1.saved_model.utils.build_tensor_info(x)
-  tensor_info_y = tf.compat.v1.saved_model.utils.build_tensor_info(y)
-
-  prediction_signature = (
-      tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
-          inputs={'images': tensor_info_x},
-          outputs={'scores': tensor_info_y},
-          method_name=tf.compat.v1.saved_model.signature_constants
-          .PREDICT_METHOD_NAME))
-
-  builder.add_meta_graph_and_variables(
-      sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
-      signature_def_map={
-          'predict_images':
-              prediction_signature,
-          tf.compat.v1.saved_model.signature_constants
-          .DEFAULT_SERVING_SIGNATURE_DEF_KEY:
-              classification_signature,
-      },
-      main_op=tf.compat.v1.tables_initializer(),
-      strip_default_attrs=True)
-
-  builder.save()
-  print('Done exporting!')
+      builder.save()
+      print('Done exporting!')
 
 
 def main(_):
@@ -273,8 +274,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--saved_model_dir',
       type=str,
-      default=os.path.join(os.getenv('MODEL_DIR', '/tmp'),
-                           'tensorflow/mnist/saved_model'),
+      default=""),
       help='model saved directory')
   parser.add_argument(
       '--model_version',
