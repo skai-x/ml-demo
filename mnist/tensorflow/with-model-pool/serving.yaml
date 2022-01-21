@@ -1,0 +1,14 @@
+apiVersion: machinelearning.seldon.io/v1
+kind: SeldonDeployment
+metadata:
+  name: mlp-model
+  namespace: default
+spec:
+  name: mlp
+  predictors:
+  - graph:
+      implementation: TENSORFLOW_SERVER
+      modelUri: pvc://mlp-v1-pvc/
+      name: classifier
+    name: default
+    replicas: 1

@@ -1,0 +1,48 @@
+apiVersion: train.skai.io/v1alpha1
+kind: TrainJob
+metadata:
+  name: dist-mnist
+spec:
+  jobType: "tfjob"
+  tensorBoard:
+    eventLogDir: /tmp/dist-mnist/events/ 
+  instanceInfos:
+  - role: "Worker"
+    replicas: 2 
+    image: tensorflow/tensorflow:1.15.5-py3-jupyter 
+    resource:
+      cpuRequest: 1
+      cpuLimit: 1 
+      memoryRequest: 1Gi
+      memoryLimit: 1Gi
+    volumeMounts:
+    - mountPath: /mp-volume
+      name: model-pool
+    volumes:
+    - name: model-pool
+      persistentVolumeClaim:
+        claimName: mlp-v1-pvc
+  - role: "PS"
+    replicas: 2 
+    image: tensorflow/tensorflow:1.15.5-py3-jupyter 
+    resource:
+      cpuRequest: 1
+      cpuLimit: 1 
+      memoryRequest: 1Gi
+      memoryLimit: 1Gi
+    volumeMounts:
+    - mountPath: /mp-volume
+      name: model-pool
+    volumes:
+    - name: model-pool
+      persistentVolumeClaim:
+        claimName: mlp-v1-pvc
+  enableDistributedTraining: true 
+  datasetInfo:
+    name: "mnist-cos"
+    mountPath: "/cos"
+  codesetInfo:
+    name: "mnist-tensorflow"
+    mountPath: "/root"
+  workingDir: "/root"
+  command: "python /root/mnist/tensorflow/with-model-pool/dist_mnist.py --num_gpus=0 --saved_model_dir=/mp-volume --data_dir=/cos/MNIST/raw/ --train_steps=500"

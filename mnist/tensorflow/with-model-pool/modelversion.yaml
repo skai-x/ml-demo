@@ -1,0 +1,12 @@
+apiVersion: core.skai.io/v1alpha1
+kind: ModelVersion
+metadata:
+  name: mlp-v1
+  labels:
+    "core.skai.io/model-name": "mlp"
+  annotations:
+    "core.skai.io/pvc-ns": "default"
+spec:
+  description:
+    "application": "cv"
+    "level": "basic"
