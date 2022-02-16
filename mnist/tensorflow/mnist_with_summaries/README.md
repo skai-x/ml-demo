@@ -4,9 +4,39 @@
 
 Install skai dashboard can refer this [doc](https://github.com/skai-x/dashboard/tree/master/charts/skai-dashboard).
 
+## Develop
+
+You can create a simple Jupyter notebook with all components in one pod, like this:
+
+```yaml
+$ cat ./examples/simple-deployments/kubeflow.tkestack.io_v1alpha1_jupyternotebook.yaml
+apiVersion: kubeflow.tkestack.io/v1alpha1
+kind: JupyterNotebook
+metadata:
+  name: jupyternotebook-simple
+spec:
+  auth:
+    mode: disable
+  template:
+    metadata:
+      labels:
+        notebook: simple
+    spec:
+      containers:
+        - name: notebook
+          image: jupyter/base-notebook:python-3.9.7
+          command: ["tini", "-g", "--", "start-notebook.sh"]
+
+$ kubectl apply -f ./examples/simple-deployments/kubeflow.tkestack.io_v1alpha1_jupyternotebook.yaml
+$ kubectl port-forward deploy/jupyternotebook-simple 8888:8888
+```
+
+Then you can open the URL `http://127.0.0.1:8888/` to get the simple Jupyter notebook instance.
+
+
 ## Train
 
-In this section, we will create a simple pipeline for training mnist model.
+In this section, we create a simple pipeline for training mnist model.
 
 ### Create CodeSet
 
