@@ -33,7 +33,6 @@ $ kubectl port-forward deploy/jupyternotebook-simple 8888:8888
 
 Then you can open the URL `http://127.0.0.1:8888/` to get the simple Jupyter notebook instance.
 
-
 ## Train
 
 In this section, we create a simple pipeline for training mnist model.
