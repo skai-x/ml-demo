@@ -274,7 +274,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--saved_model_dir',
       type=str,
-      default=""),
+      default="",
       help='model saved directory')
   parser.add_argument(
       '--model_version',
