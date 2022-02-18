@@ -6,7 +6,9 @@ Install skai dashboard can refer this [doc](https://github.com/skai-x/dashboard/
 
 ## Develop
 
-You can create a simple Jupyter notebook with all components in one pod, like this:
+Please refer to the documentation [here](https://github.com/skai-x/elastic-jupyter-operator#deploy) to deploy elastic-jupyter-operator on your Kubernetes cluster.
+
+Then you can create a simple Jupyter notebook with all components in one pod, like this:
 
 ```bash
 $ cat >> notebook.yaml << EOF  
