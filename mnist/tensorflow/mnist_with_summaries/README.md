@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: notebook
-          image: jupyter/base-notebook:python-3.9.7
+          image: ghcr.io/skai-x/ml-demo-jupyter:latest
           command: ["tini", "-g", "--", "start-notebook.sh"]
 EOF
 
