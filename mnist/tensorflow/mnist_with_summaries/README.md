@@ -4,9 +4,41 @@
 
 Install skai dashboard can refer this [doc](https://github.com/skai-x/dashboard/tree/master/charts/skai-dashboard).
 
+## Develop
+
+Please refer to the documentation [here](https://github.com/skai-x/elastic-jupyter-operator#deploy) to deploy elastic-jupyter-operator on your Kubernetes cluster.
+
+Then you can create a simple Jupyter notebook with all components in one pod, like this:
+
+```bash
+$ cat >> notebook.yaml << EOF  
+apiVersion: kubeflow.tkestack.io/v1alpha1
+kind: JupyterNotebook
+metadata:
+  name: jupyternotebook-simple
+spec:
+  auth:
+    mode: disable
+  template:
+    metadata:
+      labels:
+        notebook: simple
+    spec:
+      containers:
+        - name: notebook
+          image: ghcr.io/skai-x/ml-demo-jupyter:latest
+          command: ["tini", "-g", "--", "start-notebook.sh"]
+EOF
+
+$ kubectl apply -f ./notebook.yaml
+$ kubectl port-forward deploy/jupyternotebook-simple 8888:8888
+```
+
+Then you can open the URL `http://127.0.0.1:8888/` to get the simple Jupyter notebook instance.
+
 ## Train
 
-In this section, we will create a simple pipeline for training mnist model.
+In this section, we create a simple pipeline for training mnist model.
 
 ### Create CodeSet
 
