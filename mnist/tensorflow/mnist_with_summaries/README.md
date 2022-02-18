@@ -8,8 +8,8 @@ Install skai dashboard can refer this [doc](https://github.com/skai-x/dashboard/
 
 You can create a simple Jupyter notebook with all components in one pod, like this:
 
-```yaml
-$ cat ./examples/simple-deployments/kubeflow.tkestack.io_v1alpha1_jupyternotebook.yaml
+```bash
+$ cat >> notebook.yaml << EOF  
 apiVersion: kubeflow.tkestack.io/v1alpha1
 kind: JupyterNotebook
 metadata:
@@ -26,8 +26,9 @@ spec:
         - name: notebook
           image: jupyter/base-notebook:python-3.9.7
           command: ["tini", "-g", "--", "start-notebook.sh"]
+EOF
 
-$ kubectl apply -f ./examples/simple-deployments/kubeflow.tkestack.io_v1alpha1_jupyternotebook.yaml
+$ kubectl apply -f ./notebook.yaml
 $ kubectl port-forward deploy/jupyternotebook-simple 8888:8888
 ```
 
