@@ -1,0 +1,62 @@
+apiVersion: machinelearning.seldon.io/v1
+kind: SeldonDeployment
+metadata:
+  name: mnist
+spec:
+  name: seldon
+  predictors:
+  - componentSpecs:
+    - spec:
+        containers:
+        - image: seldonio/tfserving-proxy_rest:1.3.0
+          name: tfserving-proxy
+          resources:
+            requests:
+              cpu: "0.5"
+        - args:
+          - --rest_api_port=8501
+          - --port=7001
+          - --model_name=mnist-model
+          - --model_base_path=/mnt/mnist_seldon
+          image: tensorflow/serving:2.3.0
+          name: tfserving-cpu
+          ports:
+          - containerPort: 7001
+            protocol: TCP
+          - containerPort: 8501
+            protocol: TCP
+          securityContext:
+            runAsUser: 1000
+          volumeMounts:
+          - mountPath: /mnt
+            name: model-storage
+        terminationGracePeriodSeconds: 1
+        volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: skai-dataset-default-mnist-cos-pvc 
+    graph:
+      children: []
+      endpoint:
+        type: REST
+      name: tfserving-proxy
+      parameters:
+      - name: rest_endpoint
+        type: STRING
+        value: http://0.0.0.0:8501
+      - name: model_name
+        type: STRING
+        value: mnist-model
+      - name: signature_name
+        type: STRING
+        value: serving_default
+      - name: model_input
+        type: STRING
+        value: images
+      - name: model_output
+        type: STRING
+        value: scores
+      type: MODEL
+    name: predictor
+    replicas: 1
+  replicas: 1

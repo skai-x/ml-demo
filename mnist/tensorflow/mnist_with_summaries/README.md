@@ -139,3 +139,35 @@ mnist-cos-train-tf   2022-01-04T08:27:29Z
 **NOTICE** If github repo can't be used, you can change codeset git url to `https://gitee.com/xieyuandong/tf-mnist.git` and change train job command to `python /root/tf-mnist/mnist_with_summaries_savedmodel.py --log_dir=/tmp/xieyuandong/mnist-cos-train-tf/logs --learning_rate=0.01 --batch_size=150 --data_dir=/cos/MNIST/raw/ --saved_model_dir=/cos/mnist_seldon`.
 
 ## Inference
+
+### Install Seldon with Istio
+
+```shell
+$ kubectl create namespace istio-system
+```
+
+Using TKE Mesh create service mesh. notice set name `seldon-gateway` in `istio-system`, create ingress gateway watch default namespace application. Then create Gateway `seldon-gateway` in default namespace and set port is 8080
+
+```shell
+$ git clone https://github.com/SeldonIO/seldon-core.git /tmp/seldon-core
+$ kubectl create namespace seldon-system
+$ helm install seldon-core /tmp/seldon-core/helm-charts/seldon-core-operator \
+    --set usageMetrics.enabled=true \
+    --namespace seldon-system \
+    --set istio.enabled=true
+```
+
+### Mnist Demo
+1. Create mnist SeldonDeployment
+```shell
+$ kubectl apply -f mnist-seldon-tfserving.yaml 
+```
+
+2. Inference
+
+```shell
+$ kubectl port-forward $(kubectl get pods -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].metadata.name}') -n istio-system 8004:8080
+export SELDON_URL=localhost:8004
+$ python mnist-inference.py 
+```
+You can find the result of the inference and the image of your input data.
